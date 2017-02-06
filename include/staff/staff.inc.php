@@ -212,6 +212,9 @@ if (count($bks) > 1) {
                     }
                 ?>
                 </ul>
+                <div style="margin-bottom: 10px;">
+                <input type="button" id="selectAllEndUsers" class="button" value="Select All"> <input type="button" id="deselectAllEndUsers" class="button" value="Deselect All">
+                </div>
             </div>
             <label class="checkbox">
             <input type="checkbox" name="onvacation"
@@ -582,5 +585,15 @@ foreach ($staff->teams as $member) {
         } else {
             $('.covered-users').hide();
         }
+    });
+
+    // Select all end users
+    $('#selectAllEndUsers').click(function() {
+        $('input[name="assigned_users[]"]').prop('checked', 'checked');
+    });
+
+    // Deselect all end users
+    $('#deselectAllEndUsers').click(function() {
+        $('input[name="assigned_users[]"]').removeAttr('checked');
     });
 </script>
