@@ -28,6 +28,8 @@ $ticket = $user = null; //clean start.
 $redirect = false;
 //LOCKDOWN...See if the id provided is actually valid and if the user has access.
 if($_REQUEST['id'] || $_REQUEST['number']) {
+    if(!in_array($ticket->ticket_id, $thisstaff->getExtraAttr('assigned_users')))
+        $thisstaff->assigned_only = 0;
     if($_REQUEST['id'] && !($ticket=Ticket::lookup($_REQUEST['id'])))
          $errors['err']=sprintf(__('%s: Unknown or invalid ID.'), __('ticket'));
     elseif($_REQUEST['number'] && !($ticket=Ticket::lookup(['number' => $_REQUEST['number']])))

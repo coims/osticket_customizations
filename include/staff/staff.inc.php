@@ -183,10 +183,36 @@ if (count($bks) > 1) {
               <?php echo __('Administrator'); ?>
             </label>
             <label class="checkbox">
-            <input type="checkbox" name="assigned_only"
+            <input id="assigned_only" type="checkbox" name="assigned_only"
               <?php echo ($staff->assigned_only) ? 'checked="checked"' : ''; ?> />
-              <?php echo __('Limit ticket access to ONLY assigned tickets'); ?>
+              <?php echo __('Limit access to tickets assigned assigned to this agent,'); ?>
+              <?php echo __('<br>as well as tickets from the following end users:'); ?>
             </label>
+            <div class="covered-users">
+                <?php
+                    // Get Users
+                    $users = User::objects();
+
+                    $users->values('id', 'name', 'default_email__address', 'account__id',
+                        'account__status', 'created', 'updated');
+
+                ?>
+                <ul>
+                <?php
+                    foreach($users as $U){
+                        ?>
+                        <li class="user" style="list-style-type: none;">
+                        <label class="checkbox">
+                        <input type="checkbox" name="assigned_users[]" value="<?php echo $U['id']; ?>"
+                               <?php if(in_array($U['id'], $staff->getExtraAttr('assigned_users'))) echo 'checked="checked"'; ?> />
+                          <?php echo ($U['name'] != '') ? $U['name'] : $U['default_email__address']; ?>
+                        </label>
+                        </li>
+                        <?php
+                    }
+                ?>
+                </ul>
+            </div>
             <label class="checkbox">
             <input type="checkbox" name="onvacation"
               <?php echo ($staff->onvacation) ? 'checked="checked"' : ''; ?> />
@@ -536,4 +562,25 @@ foreach ($staff->teams as $member) {
 }
 
 ?>
+</script>
+<script type="text/javascript">
+
+    // Check if assigned_only is checked on page load
+    $(document).ready(function() {
+        if($('input[name=assigned_only]').is(':checked')) {
+            $('.covered-users').show();
+        } else {
+            $('.covered-users').hide();
+        }
+    });
+
+    // Show/Hide .covered-users when assigned_only is toggled
+    $('input[name=assigned_only]').change(function(event) {
+
+        if(this.checked) {
+            $('.covered-users').show();
+        } else {
+            $('.covered-users').hide();
+        }
+    });
 </script>

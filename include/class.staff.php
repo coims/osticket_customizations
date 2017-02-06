@@ -527,6 +527,27 @@ implements AuthenticatedUser, EmailContact, TemplateVariable {
 
         return $this->_teams;
     }
+
+    function getAssignedTickets() {
+        $assigned_users = $this->getExtraAttr('assigned_users');
+
+        if(empty($assigned_users))
+            return false;
+
+        $departments = $this->getDepts();
+
+        // Get tickets of assigned users in staff dept
+        $sql = 'SELECT ticket_id FROM ost_ticket WHERE user_id IN (' . implode(', ', $assigned_users) . ') AND dept_id IN (' . implode($departments) . ')';
+
+        $assigned_tickets = array();
+
+        if (($res=db_query($sql)) && db_num_rows($res)) {
+            while(list($id)=db_fetch_row($res))
+                $assigned_tickets[] = $id;
+        }
+
+        return $assigned_tickets;
+    }
     /* stats */
 
     function resetStats() {
@@ -1058,6 +1079,16 @@ implements AuthenticatedUser, EmailContact, TemplateVariable {
         $this->phone_ext = $vars['phone_ext'];
         $this->mobile = Format::phone($vars['mobile']);
         $this->notes = Format::sanitize($vars['notes']);
+
+        if(isset($vars['assigned_only'])) {
+            $this->setExtraAttr('assigned_users',
+            $vars['assigned_users'],
+            false);
+        } else {
+            $this->setExtraAttr('assigned_users',
+            array(),
+            false);
+        }
 
         if ($errors)
             return false;

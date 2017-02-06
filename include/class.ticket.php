@@ -352,6 +352,10 @@ implements RestrictedAccess, Threadable {
         if (!$staff instanceof Staff && !($staff=Staff::lookup($staff)))
             return false;
 
+        // Check access based on assigned tickets
+        if($staff->getAssignedTickets())
+            return true;
+
         // Check access based on department or assignment
         if (($staff->showAssignedOnly()
             || !$staff->canAccessDept($this->getDeptId()))
@@ -2917,10 +2921,19 @@ implements RestrictedAccess, Threadable {
         if(!$staff || (!is_object($staff) && !($staff=Staff::lookup($staff))) || !$staff->isStaff())
             return null;
 
+        $assigned_tickets = $staff->getAssignedTickets();
+
         // -- Open and assigned to me
         $assigned = Q::any(array(
             'staff_id' => $staff->getId(),
         ));
+
+        if($assigned_tickets)
+            $assigned = Q::any(array(
+                'staff_id' => $staff->getId(),
+                'ticket_id__in' => $assigned_tickets,
+            ));
+
         // -- Open and assigned to a team of mine
         if ($teams = array_filter($staff->getTeams()))
             $assigned->add(array('team_id__in' => $teams));

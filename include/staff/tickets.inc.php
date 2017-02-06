@@ -215,10 +215,21 @@ if ($status)
 // Impose visibility constraints
 // ------------------------------------------------------------
 if (!$view_all_tickets) {
+    // Get assigned users
+    $assigned_tickets = $thisstaff->getAssignedTickets();
+
     // -- Open and assigned to me
     $assigned = Q::any(array(
         'staff_id' => $thisstaff->getId(),
     ));
+
+    //  Access to assigned tickets AND tickets from certain end users
+    if($assigned_tickets)
+        $assigned = Q::any(array(
+            'staff_id' => $thisstaff->getId(),
+            'ticket_id__in' => $assigned_tickets
+        ));
+
     // -- Open and assigned to a team of mine
     if ($teams = array_filter($thisstaff->getTeams()))
         $assigned->add(array('team_id__in' => $teams));
