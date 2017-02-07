@@ -234,7 +234,8 @@ if (!$view_all_tickets) {
     if ($teams = array_filter($thisstaff->getTeams()))
         $assigned->add(array('team_id__in' => $teams));
 
-    $visibility = Q::any(new Q(array('status__state'=>'open', $assigned)));
+    // Show open and closed tickets
+    $visibility = Q::any(new Q(array('status__state__in'=>array('open', 'closed'), $assigned)));
 
     // -- Routed to a department of mine
     if (!$thisstaff->showAssignedOnly() && ($depts=$thisstaff->getDepts()))
