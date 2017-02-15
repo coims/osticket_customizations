@@ -172,6 +172,12 @@ if (count($bks) > 1) {
           <td colspan="2">
             <div class="error"><?php echo $errors['isadmin']; ?></div>
             <div class="error"><?php echo $errors['isactive']; ?></div>
+            <?php if ($action=='create') { ?>
+                <label class="checkbox">
+                    <input type="checkbox" name="welcome_email" id="welcome-email" checked="checked"/>
+                    <?php echo __('Send Welcome Email'); ?>
+                </label>
+            <?php } ?>
             <label class="checkbox">
             <input type="checkbox" name="islocked" value="1"
               <?php echo (!$staff->isactive) ? 'checked="checked"' : ''; ?> />
