@@ -40,9 +40,9 @@ define('ADMIN_EMAIL','n.kennethpaul@gmail.com');
 # Mysql Login info
 define('DBTYPE','mysql');
 define('DBHOST','localhost');
-define('DBNAME','osticket');
+define('DBNAME','ostick');
 define('DBUSER','root');
-define('DBPASS','rootpass');
+define('DBPASS','');
 
 # Table prefix
 define('TABLE_PREFIX','ost_');
