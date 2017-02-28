@@ -536,8 +536,8 @@ implements AuthenticatedUser, EmailContact, TemplateVariable {
 
         $departments = $this->getDepts();
 
-        // Get tickets of assigned users in staff dept
-        $sql = 'SELECT ticket_id FROM ost_ticket WHERE user_id IN (' . implode(', ', $assigned_users) . ') AND dept_id IN (' . implode($departments) . ')';
+        // Get tickets of assigned users
+        $sql = 'SELECT ticket_id FROM ost_ticket WHERE user_id IN (' . implode(', ', $assigned_users) . ')';
 
         $assigned_tickets = array();
 
