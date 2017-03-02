@@ -37,6 +37,16 @@ class TicketsAjaxAPI extends AjaxController {
             'team_id__in' => $thisstaff->teams->values_flat('team_id'),
         ));
 
+        $assigned_tickets = $thisstaff->getAssignedTickets();
+
+        if($assigned_tickets) {
+            $visibility = Q::any(array(
+            'staff_id' => $thisstaff->getId(),
+            'ticket_id__in' => $assigned_tickets,
+            'team_id__in' => $thisstaff->teams->values_flat('team_id'),
+            ));
+        }
+
         if (!$thisstaff->showAssignedOnly() && ($depts=$thisstaff->getDepts())) {
             $visibility->add(array('dept_id__in' => $depts));
         }
@@ -534,6 +544,73 @@ class TicketsAjaxAPI extends AjaxController {
 
     }
 
+    function mergeTicket() {
+        global $thisstaff;
+
+        $info = $errors = $e = array();
+        $i = 0;
+
+        $info[':action'] = '/tickets/merge';
+        $info['warn'] = sprintf(
+                __('Selected ticket to be merged will be deleted.'));
+        $info['tid'] = $_GET['tid'];
+
+        if (!$thisstaff->canManageTickets())
+            $info['error'] = sprintf(
+                __('You do not have permission'),
+                __('to merge tickets'));
+
+        if ($_POST && !$errors) {
+
+            $ticket_a = Ticket::lookup($_POST['tid']);
+
+            $ticket_b = Ticket::lookupByNumber($_POST['number']);
+
+            if( $ticket_a->getNumber() != $ticket_b->getNumber()) {
+
+                    $note = '';
+                    $datenow = date('m/d/y h:m:s');
+
+                    $note = '<hr><p class=\'faded\'>Subject: <b>' . $ticket_a->getSubject() . '</b>';
+
+                    $note .= '<br>Department: ' . $ticket_a->getDeptName();
+                    $note .= '<br>Help Topic: ' . $ticket_a->getHelpTopic();
+                    $note .= '<br>Merged Date: ' . $datenow . '</p>';
+
+                    $sql_query = 'UPDATE ost_thread_entry SET thread_id=' . $ticket_b->getId() . ', type="N", body=CONCAT(body, "' . $note . '") WHERE thread_id=' . $ticket_a->getId();
+
+                    if(db_query($sql_query)) {
+                        $i = 1;
+                        $ticket_a->delete();
+                    }
+
+            } else {
+                $errors['err'] = sprintf(
+                        __('Unable to process merge.'));
+            }
+        }
+
+        if ($_POST && $i) {
+
+            // Assume success
+            if ($i==1) {
+                $msg = sprintf(__('Successfully merged ticket.'));
+
+                $_SESSION['::sysmsgs']['msg'] = $msg;
+            }
+
+            Http::response(201, 'processed');
+        } elseif($_POST && !isset($info['error'])) {
+            $info['error'] = $errors['err'] ?: sprintf(
+                    __('Unable to %1$s %2$s'),
+                    __('process'),
+                    _N('selected ticket', 'selected tickets', $count));
+        }
+
+        include STAFFINC_DIR . 'templates/tickets-merge.tmpl.php';
+
+    }
+
     function massProcess($action, $w=null)  {
         global $thisstaff, $cfg;
 
@@ -555,6 +632,9 @@ class TicketsAjaxAPI extends AjaxController {
                     ),
                 'close' => array(
                     'verbed' => __('closed'),
+                    ),
+                'merge' => array(
+                    'verbed' => __('merged'),
                     ),
                 );
 

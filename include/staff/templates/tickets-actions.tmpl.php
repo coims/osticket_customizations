@@ -5,7 +5,6 @@
 if ($agent->canManageTickets())
     echo TicketStatus::status_options();
 
-
 // Mass Claim/Assignment
 if ($agent->hasPerm(Ticket::PERM_ASSIGN, false)) {?>
 <span
@@ -73,6 +72,41 @@ $(function() {
             +'&_uid='+new Date().getTime();
             console.log(tids);
             $.dialog(url, [201], function (xhr) {
+                $.pjax.reload('#pjax-container');
+             });
+        }
+        return false;
+    });
+
+    $(document).on('click.tickets', 'a.tickets-action-merge', function(e) {
+        e.preventDefault();
+
+        var $form = $('form#tickets');
+        var count;
+
+        if($(e.currentTarget).data('ticketid')) {
+            count = 1;
+        } else {
+            count = checkbox_checker($form, 1, 1);
+        }
+
+        if (count) {
+            var tids = $('.ckb:checked', $form).map(function() {
+                    return this.value;
+                }).get();
+
+            if($(e.currentTarget).data('ticketid')) {
+                tids = $(e.currentTarget).data('ticketid');
+            }
+
+            var url = 'ajax.php/'
+            +$(this).attr('href').substr(1)
+            +'?count='+count
+            +'&tid='+tids
+            +'&_uid='+new Date().getTime();
+            console.log(tids);
+            $.dialog(url, [201], function (xhr) {
+                window.location.search = '';
                 $.pjax.reload('#pjax-container');
              });
         }

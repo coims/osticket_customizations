@@ -67,3 +67,7 @@ if (!$nextStatuses)
     } ?>
     </ul>
 </div>
+<span data-placement="bottom" data-toggle="tooltip" title="<?php echo __('Merge'); ?>">
+<a id="merge-tickets" class="button tickets-action-merge" data-ticketid="<?php echo ($ticket) ? $ticket->getId() : ''; ?>"  href="#tickets/merge">
+       <i class="icon-link"></i></a>
+</span>
