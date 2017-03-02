@@ -2928,15 +2928,16 @@ implements RestrictedAccess, Threadable {
             'staff_id' => $staff->getId(),
         ));
 
-        if($assigned_tickets)
+        // -- Open and assigned to a team of mine
+        if ($teams = array_filter($staff->getTeams()))
+            $assigned->add(array('team_id__in' => $teams));
+
+        if($assigned_tickets) {
             $assigned = Q::any(array(
                 'staff_id' => $staff->getId(),
                 'ticket_id__in' => $assigned_tickets,
             ));
-
-        // -- Open and assigned to a team of mine
-        if ($teams = array_filter($staff->getTeams()))
-            $assigned->add(array('team_id__in' => $teams));
+        }
 
         $visibility = Q::any(new Q(array('status__state'=>'open', $assigned)));
 
@@ -2949,6 +2950,14 @@ implements RestrictedAccess, Threadable {
             ->filter(array('status__state' => 'open'))
             ->aggregate(array('count' => SqlAggregate::COUNT('ticket_id')))
             ->values('status__state', 'isanswered', 'isoverdue','staff_id', 'team_id');
+
+        if($assigned_tickets) {
+            $blocks = Ticket::objects()
+                ->filter(Q::any($assigned))
+                ->filter(array('status__state' => 'open'))
+                ->aggregate(array('count' => SqlAggregate::COUNT('ticket_id')))
+                ->values('status__state', 'isanswered', 'isoverdue','staff_id', 'team_id');
+        }
 
         $stats = array();
         $hideassigned = ($cfg && !$cfg->showAssignedTickets()) && !$staff->showAssignedTickets();
