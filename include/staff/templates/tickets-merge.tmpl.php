@@ -25,6 +25,7 @@ if (!$info['title'])
     .ticket-details {
         padding: 3px;
         font-weight: bold;
+        margin-left: calc(30% + 15px);
     }
 
     .tickets {
@@ -97,7 +98,7 @@ $action = $info[':action'];
         $t = Ticket::lookup($tid);
         ?>
        <div class="ticket-number"><?php echo $t->getNumber(); ?></div>
-       <div class="ticket-details"><span><?php echo date('M d', $t->getOpenDate()); ?> </span><?php echo $t->getName(); ?><br><span><?php echo $t->getSubject(); ?></span></div>
+       <div class="ticket-details"><span><?php echo date('M d', $t->getOpenDate()); ?> </span><?php echo $t->getName(); ?><br><span class="faded"><?php echo $t->getSubject(); ?></span></div>
     </div>
     <div class="merge-into"></div>
 </div>
@@ -120,7 +121,7 @@ $action = $info[':action'];
         ?>
         <a id="<?php echo $rt->getNumber(); ?>" data-date="<?php echo date('M d', $rt->getOpenDate()); ?>" data-name="<?php echo $rt->getName(); ?>" class="ticket" style="width: calc(50% - 20px);float: left;margin: 10px;padding: 10px;border: 1px solid;">
            <div class="ticket-number"><?php echo $rt->getNumber(); ?></div>
-           <div class="ticket-details"><span><?php echo date('M d', $rt->getOpenDate()); ?> </span><?php echo $rt->getName(); ?><br><span><?php echo $rt->getSubject(); ?></span></div>
+           <div class="ticket-details"><span><?php echo date('M d', $rt->getOpenDate()); ?> </span><?php echo $rt->getName(); ?><br><span class="faded"><?php echo $rt->getSubject(); ?></span></div>
         </a>
         <?php
         }
@@ -190,6 +191,13 @@ $(function() {
                 form.append($('<input type="hidden" name="number">').val(obj.currentTarget.id))
                 $('.merge-into').html($('<p>Merge to:</p><div class="ticket"><div class="ticket-number">' + obj.currentTarget.id + '</div><div class="ticket-details">' + $(obj.currentTarget).data('date') + ' ' + $(obj.currentTarget).data('name') + '</div></div>'));
             }
+    });
+
+    $('#merge').on('submit', function(e) {
+        if(!$('input[name=number]').length) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
     });
 });
 </script>
