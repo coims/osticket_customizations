@@ -544,6 +544,31 @@ class TicketsAjaxAPI extends AjaxController {
 
     }
 
+    function lookforTicket($id) {
+
+        $q = 'SELECT * FROM ost_ticket WHERE number like \'' . $id . '%\'';
+
+        $rows = array();
+
+        if($res = db_query($q))
+            while($row = db_fetch_array($res)) {
+                $ticket = Ticket::lookupByNumber($row['number']);
+
+                $data = array();
+                $data['id'] = $row['number'];
+                $data['matches'] = $id;
+                $data['value'] = $row['number'];
+                $data['info'] =  $row['number'] . ' - ' . date('M d', $ticket->getCreateDate()) . ' ' . $ticket->getSubject();
+                $data['subject'] = $ticket->getSubject();
+                $data['name'] = $ticket->getName()->name;
+                $data['date'] = date('M d', $ticket->getCreateDate());
+                $rows[] = $data;
+            }
+
+        return json_encode($rows);
+
+    }
+
     function mergeTicket() {
         global $thisstaff;
 
@@ -551,8 +576,6 @@ class TicketsAjaxAPI extends AjaxController {
         $i = 0;
 
         $info[':action'] = '/tickets/merge';
-        $info['warn'] = sprintf(
-                __('Selected ticket to be merged will be deleted.'));
         $info['tid'] = $_GET['tid'];
 
         if (!$thisstaff->canManageTickets())
@@ -568,21 +591,34 @@ class TicketsAjaxAPI extends AjaxController {
 
             if( $ticket_a->getNumber() != $ticket_b->getNumber()) {
 
-                    $note = '';
-                    $datenow = date('m/d/y h:m:s');
+                    // Create notes for ticket A and B
+                    $noteA = '';
+                    $noteB = '';
 
-                    $note = '<hr><p class=\'faded\'>Subject: <b>' . $ticket_a->getSubject() . '</b>';
+                    $noteA .= '<p class="faded">This ticket was closed and merged into ticket <a href="tickets.php?id=' . $ticket_b->getId() . '">#' . $ticket_b->getNumber() . '</a> "' . $ticket_b->getSubject() . '"</p>';
 
-                    $note .= '<br>Department: ' . $ticket_a->getDeptName();
-                    $note .= '<br>Help Topic: ' . $ticket_a->getHelpTopic();
-                    $note .= '<br>Merged Date: ' . $datenow . '</p>';
+                    $noteB .= '<p class="faded">Ticket <a href="tickets.php?id=' . $ticket_a->getId() . '">#' . $ticket_a->getNumber() . '</a> "' . $ticket_a->getSubject() . '" was closed and merged into this ticket.</p>';
 
-                    $sql_query = 'UPDATE ost_thread_entry SET thread_id=' . $ticket_b->getId() . ', type="N", body=CONCAT(body, "' . $note . '") WHERE thread_id=' . $ticket_a->getId();
+                    // Add ticket A last message to Note B
+                    $noteAMessage = $ticket_a->getLastMessage();
+                    $noteB .= '<p class="faded">"' . $noteAMessage->body . '"</p>';
 
-                    if(db_query($sql_query)) {
-                        $i = 1;
-                        $ticket_a->delete();
-                    }
+
+                    // Post Notes for ticket A and B
+                    $ticket_a->logNote('Merged Ticket', $noteA, $thisstaff, true);
+                    $ticket_b->logNote('Merged Ticket', $noteB, $thisstaff, true);
+
+                    // Assign ticket to the one who merged them
+                    $ticket_a->assignToStaff($thisstaff, '', false);
+                    $ticket_b->assignToStaff($thisstaff, '', false);
+
+                    // Set ticket A to close
+                    $ticket_a->status_id = 3;
+                    $ticket_a->save();
+
+                    // Merge ticket success
+                    $i = 1;
+
 
             } else {
                 $errors['err'] = sprintf(

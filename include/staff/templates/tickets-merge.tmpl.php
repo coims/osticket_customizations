@@ -104,7 +104,7 @@ $action = $info[':action'];
 </div>
 <div class="search-ticket">
     <div class="attached input">
-      <input type="number" class="basic-search" data-url="ajax.php/tickets/lookup" name="query" autofocus="" size="30" value="" autocomplete="off" autocorrect="off" autocapitalize="off">
+      <input type="number" class="basic-search" data-url="ajax.php/tickets/gettickets" name="query" autofocus="" size="30" value="" autocomplete="off" autocorrect="off" autocapitalize="off">
       <span type="submit" class="attached button"><i class="icon-search"></i>
       </span>
     </div>
@@ -119,7 +119,7 @@ $action = $info[':action'];
 
         if($rt->getNumber() != $t->getNumber()) {
         ?>
-        <a id="<?php echo $rt->getNumber(); ?>" data-date="<?php echo date('M d', $rt->getOpenDate()); ?>" data-name="<?php echo $rt->getName(); ?>" class="ticket" style="width: calc(50% - 20px);float: left;margin: 10px;padding: 10px;border: 1px solid;">
+        <a id="<?php echo $rt->getNumber(); ?>" data-subject="<?php echo $rt->getSubject(); ?>" data-date="<?php echo date('M d', $rt->getOpenDate()); ?>" data-name="<?php echo $rt->getName(); ?>" class="ticket" style="width: calc(50% - 20px);float: left;margin: 10px;padding: 10px;border: 1px solid;">
            <div class="ticket-number"><?php echo $rt->getNumber(); ?></div>
            <div class="ticket-details"><span><?php echo date('M d', $rt->getOpenDate()); ?> </span><?php echo $rt->getName(); ?><br><span class="faded"><?php echo $rt->getSubject(); ?></span></div>
         </a>
@@ -156,25 +156,27 @@ $(function() {
 
     var last_req;
     $('input.basic-search').typeahead({
+        minLength: 2,
         source: function (typeahead, query) {
             if (last_req) last_req.abort();
             var $el = this.$element;
-            var url = $el.data('url')+'?q='+encodeURIComponent(query);
+            var url = $el.data('url')+'/'+encodeURIComponent(query);
             last_req = $.ajax({
                 url: url,
                 dataType: 'json',
                 success: function (data) {
                     typeahead.process(data);
+                    console.log(data);
                 }
             });
         },
         onselect: function (obj) {
             var $el = this.$element;
             var form = $('#merge');
-            $el.val(obj.id);
+            $el.val(obj.ticket_id);
             if (obj.id) {
                 form.append($('<input type="hidden" name="number">').val(obj.id))
-                $('.merge-into').html($('<p>Merge to:</p><div class="ticket"><div class="ticket-number">' + obj.id + '</div><div class="ticket-details">' + obj.info + '</div></div>'));
+                $('.merge-into').html($('<p>Merge to:</p><div class="ticket"><div class="ticket-number">' + obj.id + '</div><div class="ticket-details">' + obj.date + ' ' + obj.name + '<br><span class="faded">' + obj.subject + '</span></div></div>'));
                 //form.submit();
             }
         },
@@ -189,7 +191,7 @@ $(function() {
         if (obj.currentTarget.id) {
                 $('input.basic-search').val('');
                 form.append($('<input type="hidden" name="number">').val(obj.currentTarget.id))
-                $('.merge-into').html($('<p>Merge to:</p><div class="ticket"><div class="ticket-number">' + obj.currentTarget.id + '</div><div class="ticket-details">' + $(obj.currentTarget).data('date') + ' ' + $(obj.currentTarget).data('name') + '</div></div>'));
+                $('.merge-into').html($('<p>Merge to:</p><div class="ticket"><div class="ticket-number">' + obj.currentTarget.id + '</div><div class="ticket-details">' + $(obj.currentTarget).data('date') + ' ' + $(obj.currentTarget).data('name') + '<br><span class="faded">' + $(obj.currentTarget).data('subject') + '</span></div></div>'));
             }
     });
 
