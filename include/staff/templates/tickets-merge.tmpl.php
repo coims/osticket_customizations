@@ -104,7 +104,7 @@ $action = $info[':action'];
 </div>
 <div class="search-ticket">
     <div class="attached input">
-      <input type="number" class="basic-search" data-url="ajax.php/tickets/gettickets" name="query" autofocus="" size="30" value="" autocomplete="off" autocorrect="off" autocapitalize="off">
+      <input type="text" class="basic-search" data-url="ajax.php/tickets/gettickets" name="query" autofocus="" size="30" value="" autocomplete="off" autocorrect="off" autocapitalize="off">
       <span type="submit" class="attached button"><i class="icon-search"></i>
       </span>
     </div>
